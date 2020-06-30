@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".fragments.ItemDetailFragment">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        <FrameLayout
+            android:background="@drawable/rounded_bg_brown"
+            android:layout_gravity="center|top"
+            android:layout_marginVertical="10dp"
+            android:layout_marginHorizontal="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_gravity="center"
+                android:src="@drawable/baked_goods"
+                android:layout_marginVertical="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+            </ImageView>
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/bread_product_name"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="10dp"
+            android:textColor="@color/brown"
+            android:textStyle="bold"
+            android:textSize="26dp"
+            android:text="Cevizli Buday"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </TextView>
+
+        <TextView
+            android:id="@+id/bread_product_detail"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="10dp"
+            android:textColor="@color/black"
+            android:textSize="15dp"
+            android:text="@string/lorem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </TextView>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_marginHorizontal="20dp"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"/>
+
+        <TextView
+            android:id="@+id/bread_product_price"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="10dp"
+            android:textColor="@color/brown"
+            android:textStyle="bold"
+            android:textSize="19dp"
+            android:text="22.0 TL"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </TextView>
+
+
+        <LinearLayout
+            android:layout_marginVertical="20dp"
+            android:layout_marginHorizontal="10dp"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_bg_rounded_brown_transparent"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:background="@color/transparent"
+                    android:id="@+id/bread_product_count_decrement"
+                    android:text="-"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp">
+                </Button>
+                <TextView
+                    android:id="@+id/bread_product_count"
+                    android:textColor="@color/brown"
+                    android:textStyle="bold"
+                    android:textSize="19dp"
+                    android:textAlignment="center"
+                    android:text="1"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content">
+                </TextView>
+                <Button
+                    android:background="@color/transparent"
+                    android:id="@+id/bread_product_count_increment"
+                    android:text="+"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp">
+                </Button>
+            </LinearLayout>
+
+            <Spinner
+                android:id="@+id/bread_product_type_spinner"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_bg_rounded_brown_transparent"
+                android:layout_margin="10dp"
+                android:entries="@array/type"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"></Spinner>
+        </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <Button
+                    android:id="@+id/bread_product_add_cart"
+                    android:layout_marginVertical="5dp"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/rounded_button_brown"
+                    android:text="SEPETE EKLE"
+                    android:textColor="@color/white"
+                    android:paddingHorizontal="25dp"
+                    android:textSize="18dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"></Button>
+
+                <Button
+
+                    android:id="@+id/bread_product_remove_product"
+                    android:layout_marginVertical="5dp"
+                    android:layout_marginHorizontal="10dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/rounded_button_light_brown"
+                    android:text="SEPETTEN CIKAR"
+                    android:textColor="@color/white"
+                    android:paddingHorizontal="25dp"
+                    android:textSize="18dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"></Button>
+
+            </LinearLayout>
+
+            <View
+                android:layout_marginVertical="20dp"
+                android:layout_width="match_parent"
+                android:layout_marginHorizontal="20dp"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"/>
+
+
+            <TextView
+                android:layout_marginHorizontal="20dp"
+                android:text="İlginizi Çekebilir"
+                android:textStyle="bold"
+                android:textSize="28dp"
+                android:textColor="@color/brown"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            </TextView>
+
+            <FrameLayout
+                android:id="@+id/bread_product_recom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"></FrameLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
