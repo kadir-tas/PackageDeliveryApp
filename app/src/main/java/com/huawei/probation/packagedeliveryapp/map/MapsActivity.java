@@ -1,5 +1,6 @@
 package com.huawei.probation.packagedeliveryapp.map;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.huawei.hmf.tasks.OnFailureListener;
 import com.huawei.hmf.tasks.OnSuccessListener;
 import com.huawei.hmf.tasks.Task;
@@ -12,13 +13,11 @@ import com.huawei.hms.location.LocationServices;
 import com.huawei.hms.location.LocationSettingsRequest;
 import com.huawei.hms.location.LocationSettingsResponse;
 import com.huawei.hms.location.SettingsClient;
-import com.huawei.hms.maps.CameraUpdate;
 import com.huawei.hms.maps.CameraUpdateFactory;
 import com.huawei.hms.maps.HuaweiMap;
 import com.huawei.hms.maps.MapView;
 import com.huawei.hms.maps.OnMapReadyCallback;
 import com.huawei.hms.maps.model.BitmapDescriptorFactory;
-import com.huawei.hms.maps.model.CameraPosition;
 import com.huawei.hms.maps.model.Circle;
 import com.huawei.hms.maps.model.CircleOptions;
 import com.huawei.hms.maps.model.LatLng;
@@ -57,6 +56,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -64,7 +64,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import java.util.Queue;
+import java.text.DecimalFormat;
 import java.util.Random;
 
 import retrofit2.Call;
@@ -74,7 +74,7 @@ import retrofit2.Response;
 /**
  * map activity entrance class
  */
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, HuaweiMap.OnMyLocationButtonClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, HuaweiMap.OnMyLocationButtonClickListener, HuaweiMap.OnPolylineClickListener {
 
     private static final String TAG = "MapViewDemoActivity";
 
@@ -87,6 +87,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 //    private static final LatLng LAT_LNG = new LatLng(31.2304, 121.4737);
     private static final LatLng LAT_LNG = new LatLng(60, 60);
+    private static final double CIRCLE_RADIUS = 20000;
 
     Button button;
 
@@ -108,14 +109,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean mIsRestore;
     private boolean isLocationPermissionGranted;
 
-
     private SettingsClient mSettingsClient;
     private GPSBroadcastReceiver mGpsBroadcastReceiver;
+
+    private String mDurationRoundedNormal;
+    private String mDistanceRoundedNormal;
+    private String mDurationRoundedDrone;
+    private String mDistanceRoundedDrone;
+
+    private LatLng mLatLngDevice;
+    private Polyline mPolyline;
 
     private static final String[] RUNTIME_PERMISSIONS = {Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET};
-    private Polyline mPolyline;
+    private Polyline mPolylineNormal;
+    private Polyline mPolylineDrone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,6 +199,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         hmap = map;
         hmap.setMinZoomPreference(MIN_ZOOM);
         hmap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MapsActivity.this));
+        hmap.setOnPolylineClickListener(MapsActivity.this);
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -507,35 +517,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mPolyline.remove();
             mPolyline = null;
         }
-//        MarkerOptions options = new MarkerOptions()
-//                .position(getLocationInLatLngRad(100.0,mLocation))
-//                .title("Hello Huawei Map")
-//                .snippet("This is a snippet!");
-//        mMarker = hmap.addMarker(options);
 
-        LatLng latLngDevice = getLocationInLatLngRad(20000.0,mLocation);
+        //Draws circle around the user location. This circle represents the field of ordering.
+        drawCircle();
 
-        // mark can be add by HuaweiMap
-        mMarker = hmap.addMarker(new MarkerOptions().position(latLngDevice)
+        //Creates random location in the boundary of circle. This location represents the courier location (Drone)
+        mLatLngDevice = getLocationInLatLngRad(20000.0,mLocation);
+
+        // marker for drone in the boundary of circle
+        mMarker = hmap.addMarker(new MarkerOptions().position(mLatLngDevice)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.drone))
                 .title("BANDO")
                 .snippet("I am coming!")
                 .anchorMarker(0.9f,0.9f));
 
+        //Requests for directions and then draws the polyline
+        getDirections(mLatLngDevice.latitude,mLatLngDevice.longitude,mLocation.getLatitude(),mLocation.getLongitude());
+
 //        mMarker.showInfoWindow();
 
-        // circle can be add by HuaweiMap
-//        mCircle = hmap.addCircle(new CircleOptions().center(new LatLng(60, 60)).radius(10000).fillColor(Color.GREEN));
-        mCircle = hmap.addCircle(new CircleOptions().center(new LatLng(mLocation.getLatitude(),mLocation.getLongitude())).radius(20000).fillColor(Color.TRANSPARENT));
 
-        //Requests for directions and then draws the polyline
-        getDirections(latLngDevice.latitude,latLngDevice.longitude,mLocation.getLatitude(),mLocation.getLongitude());
 
-//        mPolyline = hmap.addPolyline(new PolylineOptions()
-//                .add(latLngDevice, new LatLng(mLocation.getLatitude(), mLocation.getLongitude()))
-//                .color(Color.BLUE)
-//                .width(3));
+    }
 
+    private void drawCircle() {
+        mCircle = hmap.addCircle(new CircleOptions().center(new LatLng(mLocation.getLatitude(),mLocation.getLongitude())).radius(CIRCLE_RADIUS).fillColor(Color.TRANSPARENT));
     }
 
     private void getDirections(double latitude, double longitude, double latitude1, double longitude1) {
@@ -545,7 +551,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
                 if(response.body() != null && !response.body().getRoutes().isEmpty() && response.isSuccessful())
-                    addPolyLines(response.body().getRoutes().get(0).getPaths().get(0));
+                    drawPolyLines(response.body().getRoutes().get(0).getPaths().get(0));
                 else {
                     Toast.makeText(MapsActivity.this, "No Routes", Toast.LENGTH_LONG).show();
                 }
@@ -558,17 +564,106 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
-    private void addPolyLines(Paths path){
-        PolylineOptions options = new PolylineOptions();
-        options.add(new LatLng(path.getStartLocation().getLat(), path.getStartLocation().getLng()));
+    //This method draws route polylines for both drone and normal courier
+    private void drawPolyLines(Paths path){
+        double distanceNormal = 0;
+        double durationNormal = 0;
+        double distanceDrone;
+        double durationDrone;
+
+        PolylineOptions polylineOptionsNormal = new PolylineOptions();
+        PolylineOptions polylineOptionsDrone = new PolylineOptions();
+
+        polylineOptionsNormal.add(new LatLng(path.getStartLocation().getLat(), path.getStartLocation().getLng()));
+
         for(Steps s : path.getSteps()){
             for(LatLngData l : s.getPolyline()){
-                options.add(new LatLng(l.getLat(),l.getLng()));
+                polylineOptionsNormal.add(new LatLng(l.getLat(),l.getLng()));
             }
+            distanceNormal += s.getDistance();
+            durationNormal += s.getDuration();
         }
-        options.add(new LatLng(path.getEndLocation().getLat(), path.getEndLocation().getLng()));
-        options.color(Color.BLUE);
-        options.width(10f);
-        hmap.addPolyline(options);
+
+        distanceNormal /= 1000;
+        durationNormal /= 60;
+        distanceDrone = calculationByDistance(mLatLngDevice, new LatLng(mLocation.getLatitude(), mLocation.getLongitude()));
+        durationDrone = distanceDrone / 5;
+
+        //init these variables to display in the bottom sheet dialog
+        mDistanceRoundedNormal = new DecimalFormat("##.##").format(distanceNormal) + " km";
+        mDurationRoundedNormal = new DecimalFormat("##").format(durationNormal) + " min";
+        mDistanceRoundedDrone = new DecimalFormat("##.##").format(distanceDrone) + " km";
+        mDurationRoundedDrone = new DecimalFormat("##.##").format(durationDrone) + " min";
+
+        polylineOptionsNormal.add(new LatLng(path.getEndLocation().getLat(), path.getEndLocation().getLng()))
+                .color(Color.BLUE)
+                .width(10f);
+
+        polylineOptionsDrone.add(mLatLngDevice, new LatLng(mLocation.getLatitude(), mLocation.getLongitude()))
+                .color(Color.BLUE)
+                .width(10f);
+
+        mPolylineNormal = hmap.addPolyline(polylineOptionsNormal);
+        mPolylineNormal.setClickable(true);
+
+        mPolylineDrone = hmap.addPolyline(polylineOptionsDrone);
+        mPolylineDrone.setClickable(true);
+
+    }
+
+    public double calculationByDistance(LatLng StartP, LatLng EndP) {
+        int Radius = 6371;// radius of earth in Km
+        double lat1 = StartP.latitude;
+        double lat2 = EndP.latitude;
+        double lon1 = StartP.longitude;
+        double lon2 = EndP.longitude;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1))
+                * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
+                * Math.sin(dLon / 2);
+        double c = 2 * Math.asin(Math.sqrt(a));
+        double valueResult = Radius * c;
+        double km = valueResult / 1;
+        DecimalFormat newFormat = new DecimalFormat("####");
+        int kmInDec = Integer.valueOf(newFormat.format(km));
+        double meter = valueResult % 1000;
+        int meterInDec = Integer.valueOf(newFormat.format(meter));
+        Log.i("Radius Value", "" + valueResult + "   KM  " + kmInDec
+                + " Meter   " + meterInDec);
+
+        return Radius * c;
+    }
+
+    @Override
+    public void onPolylineClick(Polyline polyline) {
+        View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet_time_cost_display, null);
+
+        BottomSheetDialog dialog = new BottomSheetDialog(MapsActivity.this);
+        dialog.setContentView(dialogView);
+
+        TextView timeText = dialogView.findViewById(R.id.timeText);
+        TextView distanceText = dialogView.findViewById(R.id.distanceText);
+
+        //Color management
+        mPolylineDrone.setColor(Color.BLUE);
+        mPolylineDrone.setZIndex(1f);
+
+        mPolylineNormal.setColor(Color.BLUE);
+        mPolylineNormal.setZIndex(1f);
+
+        polyline.setColor(Color.GRAY);
+        polyline.setZIndex(2f);
+
+        if(polyline.getId().equals(mPolylineNormal.getId())){
+            timeText.setText(mDurationRoundedNormal);
+            distanceText.setText(mDistanceRoundedNormal);
+        }else{
+            timeText.setText(mDurationRoundedDrone);
+            distanceText.setText(mDistanceRoundedDrone);
+        }
+
+        dialog.show();
     }
 }
