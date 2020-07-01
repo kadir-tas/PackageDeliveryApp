@@ -18,4 +18,7 @@
     <string name="pick_place">Choose a place</string>
     <string name="lorem">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It ha</string>
 
+    <string name="toastMsgTurnOnGps">Sorry, we were unable to update the location, please turn on the GPS Services.</string>
+    <string name="toastMsgLocPermission">Sorry, we were unable to update the location, please check the GPS Services and make sure you have given the required permissions.</string>
+
 </resources>
