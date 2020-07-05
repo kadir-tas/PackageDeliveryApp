@@ -11,29 +11,20 @@
     app:behavior_peekHeight="100dp"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-    <TextView
+    <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="6dp"
-        android:id="@+id/timeText"
-        android:drawableLeft="@drawable/ic_access_time_black_24dp"
-        android:drawablePadding="16dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="6dp"
-        android:id="@+id/distanceText"
-        android:drawableLeft="@drawable/ic_motorcycle_black_24dp"
+        android:id="@+id/verifyCodeEditText"
         android:drawablePadding="16dp"/>
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:id="@+id/purchaseButton"
+        android:id="@+id/verifyCodeConfirmButton"
         android:background="@color/black"
-        android:text="PROCEED PAYMENT"
+        android:text="Confirm"
         android:textColor="#fff" />
 
 </LinearLayout>

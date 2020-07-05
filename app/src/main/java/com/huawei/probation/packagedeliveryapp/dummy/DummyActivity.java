@@ -109,6 +109,11 @@ public class DummyActivity extends AppCompatActivity
     }
 
     @Override
+    public void onLoginButtonClick(String username, String password) {
+
+    }
+
+    @Override
     public void onLoginCorrect() {
         LoginFragment loginFragment = (LoginFragment) getSupportFragmentManager().findFragmentByTag("LOGIN_FRAGMENT");
         getSupportFragmentManager().beginTransaction().remove(loginFragment).commit();

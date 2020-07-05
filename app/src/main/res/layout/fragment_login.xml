@@ -1,43 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".fragments.LoginFragment"
     android:background="@drawable/login240_eksi_maya_ekmek_1"
-    android:orientation="vertical"
-    tools:context=".fragments.LoginFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-            <EditText
-                android:inputType="text"
-                android:layout_marginTop="150dp"
-                android:layout_gravity="center"
-                android:id="@+id/username"
-                android:textColor="@color/white"
+        <EditText
+            android:id="@+id/username"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="150dp"
 
-                android:layout_width="250dp"
-                android:layout_height="wrap_content"
-                android:text=""></EditText>
+            android:inputType="text"
+            android:text=""
+            android:textColor="@color/white" />
 
-            <EditText
-                android:layout_gravity="center"
-                android:id="@+id/password"
-                android:layout_width="250dp"
-                android:textColor="@color/white"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword"
-                android:text=""></EditText>
+        <EditText
+            android:id="@+id/password"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:inputType="textPassword"
+            android:text=""
+            android:textColor="@color/white" />
 
-            <Button
-                android:id="@+id/login_button"
-                android:background="@drawable/rounded_bg_edge_green"
-                android:textColor="@color/darkgreen"
-                android:textSize="16dp"
-                android:layout_marginTop="10dp"
-                android:layout_gravity="center"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Giriş"></Button>
+        <Button
+            android:id="@+id/login_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="100dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="100dp"
+            android:background="@drawable/rounded_bg_edge_green"
+            android:text="Login"
+            android:textColor="@color/darkgreen"
+            android:textSize="16dp" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/register"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="100dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="100dp"
+            android:background="@drawable/rounded_bg_edge_green"
+            android:text="Register"
+            android:textColor="@color/darkgreen"
+            android:textSize="16dp" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/loginHuaweiId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="100dp"
+        android:src="@drawable/huaweilogo_48x48"/>
+</FrameLayout>
