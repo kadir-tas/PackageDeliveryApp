@@ -12,7 +12,7 @@ public class Paths {
     private String durationText;
 
     @SerializedName("durationInTraffic")
-    private Integer durationInTraffic;
+    private Float durationInTraffic;
 
     @SerializedName("distance")
     private Double distance;
@@ -37,7 +37,7 @@ public class Paths {
 
     public Paths(Double duration,
                  String durationText,
-                 Integer durationInTraffic,
+                 Float durationInTraffic,
                  Double distance,
                  LatLngData startLocation,
                  String startAddress,
@@ -75,11 +75,11 @@ public class Paths {
         this.durationText = durationText;
     }
 
-    public Integer getDurationInTraffic() {
+    public Float getDurationInTraffic() {
         return durationInTraffic;
     }
 
-    public void setDurationInTraffic(Integer durationInTraffic) {
+    public void setDurationInTraffic(Float durationInTraffic) {
         this.durationInTraffic = durationInTraffic;
     }
 

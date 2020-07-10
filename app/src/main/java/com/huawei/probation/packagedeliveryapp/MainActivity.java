@@ -46,6 +46,8 @@ import org.json.JSONException;
 import java.util.HashMap;
 
 import static com.huawei.probation.packagedeliveryapp.adapters.CategoriesRecyclerViewAdapter.recViewItemPressed;
+import static com.huawei.probation.packagedeliveryapp.map.MapsActivity.isDrone;
+import static com.huawei.probation.packagedeliveryapp.map.MapsActivity.isTrackOrder;
 
 public class MainActivity extends AppCompatActivity
         implements CategoriesFragment.OnFragmentInteractionListener,
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity
 
     private AGConnectAuth auth;
     private HuaweiIdAuthService service;
+    private BottomAppBar bottomAppBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +86,13 @@ public class MainActivity extends AppCompatActivity
 
         totalPrice.setVisibility(View.INVISIBLE);
         cartButton.setVisibility(View.INVISIBLE);
+
+        bottomAppBar = findViewById(R.id.bottom_app_bar);
+        bottomAppBar.setVisibility(View.INVISIBLE);
+
+        packgeDeliveryIcon.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, MapsActivity.class));
+        });
 
         auth = AGConnectAuth.getInstance();
 
@@ -154,17 +164,26 @@ public class MainActivity extends AppCompatActivity
         Fragment itemDetailFragment = getSupportFragmentManager().findFragmentByTag("PROD_DETAIL_FRAG");
 
         if (itemDetailFragment != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().remove(itemDetailFragment).commit();
         } else if (loginFrag != null) {
             finish();
         } else if (cartFragment != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().remove(cartFragment).commit();
             getSupportFragmentManager().beginTransaction().show(shopFragment).commit();
         } else if (sop != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().remove(sop).commit();
             getSupportFragmentManager().beginTransaction().show(cat).commit();
             recViewItemPressed = false;
         } else if (cat != null) {
+            // clear for anonymous account when user want to exit from the app
+            if (AGConnectAuth.getInstance().getCurrentUser().isAnonymous()) {
+                AGConnectAuth.getInstance().deleteUser();
+            }
+            isTrackOrder = false;
+            isDrone = false;
             finish();
         }
     }
@@ -181,6 +200,7 @@ public class MainActivity extends AppCompatActivity
 
 
     public void switchContent(String categoryName) {
+        bottomAppBar.setVisibility(View.INVISIBLE);
         Fragment cat = getSupportFragmentManager().findFragmentByTag("CAT_FRAG");
         ShopFragment sf = ShopFragment.newInstance(categoryName, shoppingCart);
         getSupportFragmentManager().beginTransaction().hide(cat).commit();
@@ -202,22 +222,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onItemsPurchased() {
-        /*Toast toast = Toast.makeText(this, "Thanks for your purhcase", Toast.LENGTH_LONG);
-        toast.show();
-        shoppingCart.clear();
-        CartFragment cartFragment = (CartFragment) getSupportFragmentManager().findFragmentByTag("CART_FRAGMENT");
-        getSupportFragmentManager().beginTransaction().remove(cartFragment).commit();
-        getSupportFragmentManager().beginTransaction().show(shopFragment).commit();
-        */
         orderCountIcon.setVisibility(View.VISIBLE);
         Intent intent = new Intent(MainActivity.this, MapsActivity.class);
         startActivity(intent);
     }
 
     void signOutClicked() {
-                AGConnectAuth.getInstance().signOut();
-                startActivity(new Intent(MainActivity.this, MainActivity.class));
-                finish();
+        AGConnectAuth.getInstance().signOut();
+        startActivity(new Intent(MainActivity.this, MainActivity.class));
+        finish();
     }
 
     @Override
@@ -225,6 +238,7 @@ public class MainActivity extends AppCompatActivity
         totalPrice.setVisibility(View.VISIBLE);
         cartButton.setVisibility(View.VISIBLE);
         packgeDeliveryIcon.setVisibility(View.VISIBLE);
+        bottomAppBar.setVisibility(View.VISIBLE);
 
         shoppingCart = new Cart();
         shoppingCart.addOnCartChangedListener(this);
@@ -235,9 +249,11 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 CartFragment cartFragment = (CartFragment) getSupportFragmentManager().findFragmentByTag("CART_FRAGMENT");
                 if (cartFragment == null) {
+                    bottomAppBar.setVisibility(View.INVISIBLE);
                     getSupportFragmentManager().beginTransaction().hide(shopFragment).commit();
                     getSupportFragmentManager().beginTransaction().add(R.id.container, CartFragment.newInstance(shoppingCart, MainActivity.this), "CART_FRAGMENT").commit();
                 } else {
+                    bottomAppBar.setVisibility(View.INVISIBLE);
                     getSupportFragmentManager().beginTransaction().remove(cartFragment).commit();
                     getSupportFragmentManager().beginTransaction().show(shopFragment).commit();
                 }
@@ -340,6 +356,6 @@ public class MainActivity extends AppCompatActivity
                     AGConnectUser user = signInResult.getUser();
                     Toast.makeText(MainActivity.this, user.getUid(), Toast.LENGTH_LONG).show();
                     onLoginCorrect();
-                }).addOnFailureListener(e -> Toast.makeText(MainActivity.this, "Anonymous SignIn Failed", Toast.LENGTH_LONG).show());
+                }).addOnFailureListener(e -> Toast.makeText(MainActivity.this, "Anonymous SignIn Failed " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 }

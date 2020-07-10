@@ -1,6 +1,7 @@
 package com.huawei.probation.packagedeliveryapp.map;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.gson.Gson;
 import com.huawei.hmf.tasks.OnFailureListener;
 import com.huawei.hmf.tasks.OnSuccessListener;
 import com.huawei.hmf.tasks.Task;
@@ -56,6 +57,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -141,6 +143,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<Marker> mSiteMarkerList = new ArrayList<>();
     private Paths mPath;
 
+    private SharedPreferences sharedPref;
+    SharedPreferences.Editor editor;
+    private Gson gson = new Gson();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -153,39 +159,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             registerReceiver(mGpsBroadcastReceiver, new IntentFilter("android.location.PROVIDERS_CHANGED"));
         }
 
+        sharedPref = getPreferences(Context.MODE_PRIVATE);
+
         setUpMap(savedInstanceState);
 
-
-//        mSettingsClient = LocationServices.getSettingsClient(this);
-
-
-//        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-//            Log.i(TAG, "sdk < 28 Q");
-//            if (ActivityCompat.checkSelfPermission(this,
-//                    Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-//                    || ActivityCompat.checkSelfPermission(this,
-//                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//                String[] strings =
-//                        {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
-//                ActivityCompat.requestPermissions(this, strings, 1);
-//            }
-//        } else {
-//            if (ActivityCompat.checkSelfPermission(this,
-//                    Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-//                    || ActivityCompat.checkSelfPermission(this,
-//                    Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-//                    || ActivityCompat.checkSelfPermission(this,
-//                    "android.permission.ACCESS_BACKGROUND_LOCATION") != PackageManager.PERMISSION_GRANTED) {
-//                String[] strings = {android.Manifest.permission.ACCESS_FINE_LOCATION,
-//                        android.Manifest.permission.ACCESS_COARSE_LOCATION,
-//                        "android.permission.ACCESS_BACKGROUND_LOCATION"};
-//                ActivityCompat.requestPermissions(this, strings, 2);
-//            }
-//        }
-//
-//        if (!hasPermissions(this, RUNTIME_PERMISSIONS)) {
-//            ActivityCompat.requestPermissions(this, RUNTIME_PERMISSIONS, REQUEST_CODE);
-//        }
     }
 
     private void setUpMap(Bundle savedInstanceState) {
@@ -235,7 +212,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             checkLocationSetting(builder);
 
             hmap.setMyLocationEnabled(true);
-
         }
     }
 
@@ -333,8 +309,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (location != null /* && ((location.getAccuracy() > 0 && location.getAccuracy() < 20) || (location.getTime() - System.currentTimeMillis() < 120000))*/) {
                     mLocation = location;
                     try {
-                        drawCircle();
-                        nearbySearch();
+                        //check if user comes from main activity for tracking the order then check placed order with drone or moto courier
+                        if(isTrackOrder){
+                            if(isDrone){
+                                drawDronePolyline();
+                            }
+                            else{
+                                drawCourierPolyline();
+                            }
+                            String title = sharedPref.getString("title", "");
+                            int drawableResourceInt = sharedPref.getInt("drawableResourceInt", 0);
+                            String json = sharedPref.getString("latlongDevice", "");
+                            mLatLngDevice = gson.fromJson(json, LatLng.class);
+
+                            hmap.addMarker(new MarkerOptions().position(mLatLngDevice)
+                                    .icon(BitmapDescriptorFactory.fromResource(drawableResourceInt))
+                                    .title(title)
+                                    .snippet("I am coming!")
+                                    .anchorMarker(0.9f,0.9f));
+                            hmap.moveCamera( CameraUpdateFactory.newLatLngZoom(new LatLng(mLocation.getLatitude(), mLocation.getLongitude()) , 21.0f) );
+
+                        }else{
+                            drawCircle();
+                            nearbySearch();
+                        }
 //                        addMarker();
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
@@ -376,14 +374,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     isLocationPermissionGranted = true;
                     getLastLocation();
                     init();
-//                    Task<Location> task = mFusedLocationProviderClient.getLastLocation();
-//                    task.addOnSuccessListener(location -> {
-//                        if (location != null /*&& ((location.getAccuracy() > 0 && location.getAccuracy() < 20) || (location.getTime() - System.currentTimeMillis() < 120000))*/) {
-//                            mLocation = location;
-//                            Toast.makeText(MapsActivity.this, mLocation.getLatitude() + ", " + mLocation.getLongitude(), Toast.LENGTH_SHORT).show();
-//                            startClustering(new LatLng(location.getLatitude(),location.getLongitude()), DEFAULT_ZOOM);
-//                        }
-//                    });
                 } else {
                     Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
                     isLocationPermissionGranted = false;
@@ -422,30 +412,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return true;
     }
 
-//    public void addMarker() {
-//        if (null != mMarker) {
-//            mMarker.remove();
-//        }
-//
-//        //Draws circle around the user location. This circle represents the field of ordering.
-//        drawCircle();
-//
-//        //Creates random location in the boundary of circle. This location represents the courier location (Drone)
-////        mLatLngDevice = getLocationInLatLngRad(20000.0,mLocation);
-//
-//        // marker for drone in the boundary of circle
-//        mMarker = hmap.addMarker(new MarkerOptions().position(mLatLngDevice)
-//                .icon(BitmapDescriptorFactory.fromResource(R.drawable.drone))
-//                .title("BANDO")
-//                .snippet("I am coming!")
-//                .anchorMarker(0.9f,0.9f));
-//
-//        //Requests for directions and then draws the polyline
-//        getDirections(mLatLngDevice.latitude,mLatLngDevice.longitude,mLocation.getLatitude(),mLocation.getLongitude());
-//
-////        mMarker.showInfoWindow();
-//    }
-
     private void drawCircle() {
         mCircle = hmap.addCircle(new CircleOptions().center(new LatLng(mLocation.getLatitude(),mLocation.getLongitude())).radius(CIRCLE_RADIUS).fillColor(Color.TRANSPARENT));
     }
@@ -466,24 +432,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onFailure(Call<DirectionsResponse> call, Throwable t) {
-                Toast.makeText(MapsActivity.this, "Something went wrong", Toast.LENGTH_LONG).show();
+                Toast.makeText(MapsActivity.this, "Something went wrong " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    //This method draws route polylines for both drone and normal courier
-    private void drawPolyLines(Paths path){
-
-
-
-
-
-
     }
 
     void drawDronePolyline(){
         double distanceDrone;
         double durationDrone;
+
+        if(mLatLngDevice == null){
+            String json = sharedPref.getString("latlongDevice", "");
+            mLatLngDevice = gson.fromJson(json, LatLng.class);
+
+        }else{
+            editor = sharedPref.edit();
+            String json = gson.toJson(mLatLngDevice);
+            editor.putString("latlongDevice", json);
+            editor.apply();
+        }
 
         PolylineOptions polylineOptionsDrone = new PolylineOptions();
 
@@ -500,12 +467,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .width(10f);
 
         mPolylineDrone = hmap.addPolyline(polylineOptionsDrone);
-        mPolylineDrone.setClickable(true);
+        if(!isTrackOrder) mPolylineDrone.setClickable(true);
     }
 
     void drawCourierPolyline(){
         double distanceNormal = 0;
         double durationNormal = 0;
+
+        if(mPath == null){
+            String json = sharedPref.getString("path", "");
+            mPath = gson.fromJson(json, Paths.class);
+
+        }else{
+            editor = sharedPref.edit();
+            String json = gson.toJson(mPath);
+            editor.putString("path", json);
+            editor.apply();
+        }
 
         PolylineOptions polylineOptionsNormal = new PolylineOptions();
         polylineOptionsNormal.add(new LatLng(mPath.getStartLocation().getLat(), mPath.getStartLocation().getLng()));
@@ -530,7 +508,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .width(10f);
 
         mPolylineNormal = hmap.addPolyline(polylineOptionsNormal);
-        mPolylineNormal.setClickable(true);
+        if(!isTrackOrder) mPolylineNormal.setClickable(true);
     }
 
     private void cleanMapPolylines() {
@@ -582,6 +560,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Button button = dialogView.findViewById(R.id.purchaseButton);
         button.setOnClickListener(v -> {
+            //set flags for when order icon clicked from main activity and redirected to map activity
+            // to tracking order if isDrone true it means that we should create just a drone way and no anymore request
+            isTrackOrder = true;
+            if(polyline.getId().equals(mPolylineNormal.getId())) {
+                isDrone = false;
+            }else if(polyline.getId().equals(mPolylineDrone.getId())){
+                isDrone = true;
+            }
+
             // marker for drone in the boundary of circle
             if(mMarker != null){
                 mMarker.remove();
@@ -591,6 +578,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .title(titleText)
                     .snippet("I am coming!")
                     .anchorMarker(0.9f,0.9f));
+
+            editor = sharedPref.edit();
+            editor.putString("title", titleText);
+            editor.putInt("drawableResourceInt", drawableResourceInt);
+            editor.apply();
+
             clearSiteMarkers();
             dialog.cancel();
         });
@@ -759,7 +752,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onBackPressed() {
-        onPause();
+        super.onBackPressed();
     }
 
     @Override
