@@ -27,105 +27,13 @@ public class CategoriesRecyclerViewAdapter extends RecyclerView.Adapter{
     private Context context;
 
     ArrayList<Data> itemList = new ArrayList<>();
-
-    int[] images = new int[]{
-            R.drawable.cevizli_bugday1543585834_1,
-            R.drawable.cok_tahilli1543084924_1,
-            R.drawable.findikli_yaban_mersinli1543585628_4,
-            R.drawable.sade_koy_ekmegi1543084082_4,
-            R.drawable.sos_siyah_zeytin1543577383_atolye_1,
-            R.drawable.sos_fistik_ezmesi1543577401_1,
-            R.drawable.sos_muhammara1543577172_atolye_4,
-            R.drawable.sos_pesto1543577109_atolye_3,
-            R.drawable.kahveli_sekersiz_21569499717_pastane_3,
-            R.drawable.uzumlu_yulafli_sekersiz_21569499802_pastane_4,
-            R.drawable.meyveli_sekersiz_21569499770,
-            R.drawable.susamli_kavilca_cubuk_21569499925_pastane_1
-    };
-
-    String[] categoryName = new String[]{
-            "Ekmek Çeşitleri",
-            "Ekmek Çeşitleri",
-            "Ekmek Çeşitleri",
-            "Ekmek Çeşitleri",
-            "240 Derece Atölye",
-            "240 Derece Atölye",
-            "240 Derece Atölye",
-            "240 Derece Atölye",
-            "Pastane",
-            "Pastane",
-            "Pastane",
-            "Pastane"
-    };
-
-    String[] productNames = {
-            "Cevizli Buğday",
-            "Çok Tahıllı Ekmek",
-            "Fındıklı Yaban Mersinli",
-            "Sade Köy Ekmeği",
-            "Sos Siyah Zeytin",
-            "Sos Fıstık Ezmesi",
-            "Sos Muhammara",
-            "Sos Pesto",
-            "Kahveli Şekersiz Kurabiye",
-            "Üzümlü Yulaflı Şekersiz",
-            "Meyveli Şekersiz",
-            "Susamlı Kavılca Çubuk"
-    };
-
-    String[] productComment = {
-            "Organik tam buğday unu kullanılır. İçerisinde ceviz taneleri yer alır. Omega-3 kaynağıdır ve doyurucudur. Diyet yapanlar rahatlıkla tüketebilir. 650 gram",
-            "Çavdar ve tam buğday unu kullanılır, çavdar ekşi mayası ile mayalanır. Ay çekirdeği, keten tohumu ve susam içerir. Tahıl kokusu yoğun olarak hissedilir. Diyet yapanlar rahatlıkla tüketebilir. 650 gram",
-            "Organik buğday ve tam buğday unu kullanılır. İçerisinde yaban mersini, mavi yemiş ve fındık yer almaktadır. Enerji kaynağıdır ve antioksidan özelliğe sahiptir. 700 gram",
-            "240 Derece yıllanmış ekşi mayası ile organik buğday ve tam buğday unları kullanılır. Gerçek 240 Derece ekşi maya lezzetini keşfedin. 650 gram",
-            "240 Derece Atölye nin özel Siyah Zeytin Sos. Kargo gönderimine uygun değildir. Sadece 240 Derece araçları ile sevk edilebilmektedir.",
-            "240 Derece Atölye nin özel Fıstık Ezmesi. Kargo gönderimine uygun değildir. Sadece 240 Derece araçları ile sevk edilebilmektedir.",
-            "240 Derece Atölye nin özel Muhammara. Kargo gönderimine uygun değildir. Sadece 240 Derece araçları ile sevk edilebilmektedir.",
-            "240 Derece Atölye nin özel Pesto Sosu. Kargo gönderimine uygun değildir. Sadece 240 Derece araçları ile sevk edilebilmektedir.",
-            "240 Derece pastane tarafından üretilen şekersiz ve unsuz kurabiye. Tadını sadece bitter çikolata parçacıklarından alır. Glüten içermeyen diyet kurabiye.",
-            "240 Derece pastane tarafından üretilen şekersiz kurabiye. Tadını sadece kuru üzüm parçacıklarından alır. Şeker ve beyaz un içermeyen diyet kurabiye.",
-            "240 Derece pastane tarafından üretilen şekersiz ve unsuz kurabiye. Tadını sadece meyve parçacıklarından alır. Glüten içermeyen diyet kurabiye.",
-            "240 Derece pastane tarafından üretilen Kavılca unlu tuzlu çubuk. Üzeri susamlı kendisi gevrektir, glisemik indesksi ve gluten oranı çok düşüktür. 250gram ve 500gramlık kutularda adrese teslim edilir."
-    };
-
-    String[] headers = new String[]{
-            "Ekmek Çeşitleri",
-            "240 Derece Atölye",
-            "Pastane",
-    };
-
-    String[] productPrices = new String[]{
-            "22",
-            "20",
-            "23",
-            "15",
-            "20",
-            "20",
-            "20",
-            "25",
-            "100",
-            "100",
-            "100",
-            "80"
-    };
-
-    int[] viewTypes = new int[]{
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-    };
+    private String[] categoryName;
+    private String[] headers;
+    private String[] productComment;
+    private String[]  productNames;
+    private int[] images;
+    private String[] productPrices;
+    private int[] viewTypes;
 
     public CategoriesRecyclerViewAdapter(Context context) {
         this.context = context;
@@ -136,6 +44,9 @@ public class CategoriesRecyclerViewAdapter extends RecyclerView.Adapter{
     private void initData() {
         int countImage = 0;
         int countHeader = 0;
+
+        initValues();
+
         for (int i = 0 ; i < viewTypes.length ; i++) {
             if(viewTypes[i] == 1){
                 Header header = new Header(1,headers[countHeader], countHeader);
@@ -147,6 +58,107 @@ public class CategoriesRecyclerViewAdapter extends RecyclerView.Adapter{
                 countImage++;
             }
         }
+    }
+
+    private void initValues() {
+        images = new int[]{
+                R.drawable.cevizli_bugday1543585834_1,
+                R.drawable.cok_tahilli1543084924_1,
+                R.drawable.findikli_yaban_mersinli1543585628_4,
+                R.drawable.sade_koy_ekmegi1543084082_4,
+                R.drawable.sos_siyah_zeytin1543577383_atolye_1,
+                R.drawable.sos_fistik_ezmesi1543577401_1,
+                R.drawable.sos_muhammara1543577172_atolye_4,
+                R.drawable.sos_pesto1543577109_atolye_3,
+                R.drawable.kahveli_sekersiz_21569499717_pastane_3,
+                R.drawable.uzumlu_yulafli_sekersiz_21569499802_pastane_4,
+                R.drawable.meyveli_sekersiz_21569499770,
+                R.drawable.susamli_kavilca_cubuk_21569499925_pastane_1
+        };
+
+        categoryName = new String[]{
+                "Bread Types",
+                "Bread Type",
+                "Bread Type",
+                "Bread Type",
+                "Workshop",
+                "Workshop",
+                "Workshop",
+                "Workshop",
+                "Patisserie",
+                "Patisserie",
+                "Patisserie",
+                "Patisserie"
+        };
+
+        productNames = new String[]{
+                "Walnut Wheat",
+                "Multigrain Bread",
+                "Hazelnut Blueberry",
+                "Plain Village Bread",
+                "Sauce Black Olive",
+                "Sauce Peanut Butter",
+                "Sauce Muhammara",
+                "Sauce Pesto",
+                "Coffee Sugar Free Cookies",
+                "Grape Oats Sugar Free",
+                "Fruity Sugar Free",
+                "Sesame Kavılca Stick"
+        };
+
+        productComment = new String[]{
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem),
+                context.getResources().getString(R.string.lorem)
+        };
+
+        headers = new String[]{
+                "Bread Types",
+                "Workshop",
+                "Patisserie",
+        };
+
+        productPrices = new String[]{
+                "22",
+                "20",
+                "23",
+                "15",
+                "20",
+                "20",
+                "20",
+                "25",
+                "100",
+                "100",
+                "100",
+                "80"
+        };
+
+        viewTypes = new int[]{
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+        };
     }
 
     @NonNull

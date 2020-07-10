@@ -93,6 +93,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
 
+    public static boolean isDrone = false;
+    public static boolean isTrackOrder = false;
+
     private static final int REQUEST_CODE = 101;
     private static final float DEFAULT_ZOOM = 9f;
     private static final float MIN_ZOOM = 4f;
@@ -136,6 +139,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Polyline mPolylineNormal;
     private Polyline mPolylineDrone;
     private List<Marker> mSiteMarkerList = new ArrayList<>();
+    private Paths mPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -452,9 +456,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         DirectionsBaseRepo.getInstance().getDirectionsWithType(DirectionType.BICYCLING.getDirectionString(),directionRequest).enqueue(new Callback<DirectionsResponse>() {
             @Override
             public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-                if(response.body() != null && !response.body().getRoutes().isEmpty() && response.isSuccessful())
-                    drawPolyLines(response.body().getRoutes().get(0).getPaths().get(0));
-                else {
+                if(response.body() != null && !response.body().getRoutes().isEmpty() && response.isSuccessful()) {
+                    mPath = response.body().getRoutes().get(0).getPaths().get(0);
+                    drawCourierPolyline();
+                }else {
                     Toast.makeText(MapsActivity.this, "No Routes", Toast.LENGTH_LONG).show();
                 }
             }
@@ -468,20 +473,44 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     //This method draws route polylines for both drone and normal courier
     private void drawPolyLines(Paths path){
-        double distanceNormal = 0;
-        double durationNormal = 0;
+
+
+
+
+
+
+    }
+
+    void drawDronePolyline(){
         double distanceDrone;
         double durationDrone;
 
-        //Clean map if there is any polyline
-        cleanMapPolylines();
-
-        PolylineOptions polylineOptionsNormal = new PolylineOptions();
         PolylineOptions polylineOptionsDrone = new PolylineOptions();
 
-        polylineOptionsNormal.add(new LatLng(path.getStartLocation().getLat(), path.getStartLocation().getLng()));
+        distanceDrone = calculationByDistance(mLatLngDevice, new LatLng(mLocation.getLatitude(), mLocation.getLongitude()));
+        durationDrone = (distanceDrone / 40) * 60; //minute conversion
 
-        for(Steps s : path.getSteps()){
+        //init these variables to display in the bottom sheet dialog
+        mDistanceRoundedDrone = new DecimalFormat("##.##").format(distanceDrone) + " km";
+        mDurationRoundedDrone = new DecimalFormat("##.##").format(durationDrone) + " min";
+
+
+        polylineOptionsDrone.add(mLatLngDevice, new LatLng(mLocation.getLatitude(), mLocation.getLongitude()))
+                .color(Color.BLUE)
+                .width(10f);
+
+        mPolylineDrone = hmap.addPolyline(polylineOptionsDrone);
+        mPolylineDrone.setClickable(true);
+    }
+
+    void drawCourierPolyline(){
+        double distanceNormal = 0;
+        double durationNormal = 0;
+
+        PolylineOptions polylineOptionsNormal = new PolylineOptions();
+        polylineOptionsNormal.add(new LatLng(mPath.getStartLocation().getLat(), mPath.getStartLocation().getLng()));
+
+        for(Steps s : mPath.getSteps()){
             for(LatLngData l : s.getPolyline()){
                 polylineOptionsNormal.add(new LatLng(l.getLat(),l.getLng()));
             }
@@ -491,28 +520,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         distanceNormal /= 1000;
         durationNormal /= 60;
-        distanceDrone = calculationByDistance(mLatLngDevice, new LatLng(mLocation.getLatitude(), mLocation.getLongitude()));
-        durationDrone = (distanceDrone / 40) * 60; //minute conversion
 
         //init these variables to display in the bottom sheet dialog
         mDistanceRoundedNormal = new DecimalFormat("##.##").format(distanceNormal) + " km";
         mDurationRoundedNormal = new DecimalFormat("##").format(durationNormal) + " min";
-        mDistanceRoundedDrone = new DecimalFormat("##.##").format(distanceDrone) + " km";
-        mDurationRoundedDrone = new DecimalFormat("##.##").format(durationDrone) + " min";
 
-        polylineOptionsNormal.add(new LatLng(path.getEndLocation().getLat(), path.getEndLocation().getLng()))
-                .color(Color.BLUE)
-                .width(10f);
-
-        polylineOptionsDrone.add(mLatLngDevice, new LatLng(mLocation.getLatitude(), mLocation.getLongitude()))
+        polylineOptionsNormal.add(new LatLng(mPath.getEndLocation().getLat(), mPath.getEndLocation().getLng()))
                 .color(Color.BLUE)
                 .width(10f);
 
         mPolylineNormal = hmap.addPolyline(polylineOptionsNormal);
         mPolylineNormal.setClickable(true);
-
-        mPolylineDrone = hmap.addPolyline(polylineOptionsDrone);
-        mPolylineDrone.setClickable(true);
     }
 
     private void cleanMapPolylines() {
@@ -700,8 +718,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if(!mGpsBroadcastReceiver.isOrderedBroadcast()){
             registerReceiver(mGpsBroadcastReceiver, new IntentFilter("android.location.PROVIDERS_CHANGED"));
         }
-        if(isLocationPermissionGranted)
-            getLastLocation();
+//        if(isLocationPermissionGranted)
+//            getLastLocation();
+
+
 //        if(!isGPS)
 //            new GpsUtils(this).turnGPSOn(isGPSEnable -> isGPS = isGPSEnable);
 
@@ -738,6 +758,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    public void onBackPressed() {
+        onPause();
+    }
+
+    @Override
     public boolean onMyLocationButtonClick() {
         return false;
     }
@@ -745,7 +770,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onMarkerClick(Marker marker) {
         mLatLngDevice = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
-        getDirections(marker.getPosition().latitude,marker.getPosition().longitude,mLocation.getLatitude(),mLocation.getLongitude());
+
+        //Clean map if there is any polyline
+        cleanMapPolylines();
+
+        //Draws drone route/straight polyline
+        drawDronePolyline();
+
+        //Requests for direction then draws courier route/polyline
+        if(mPath == null || (mMarker != null && !mMarker.getId().equals(marker.getId()))) {
+            getDirections(marker.getPosition().latitude, marker.getPosition().longitude, mLocation.getLatitude(), mLocation.getLongitude());
+        }
+        else{
+            drawCourierPolyline();
+        }
         return true;
     }
 }

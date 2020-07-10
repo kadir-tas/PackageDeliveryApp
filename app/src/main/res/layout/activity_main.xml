@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -47,21 +46,26 @@
                 android:textColor="@color/darkgreen"
                 android:layout_gravity="right"
                 android:layout_marginRight="60dp"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="15dp"
                 android:text="0 TL"
                 android:textSize="10dp"
                 android:background="@drawable/rounded_bg_edge_green"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-            </TextView>
+                android:layout_height="wrap_content"/>
             
         </FrameLayout>
     </Toolbar>
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottom_app_bar"
+        style="@style/Widget.MaterialComponents.BottomAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:navigationIcon="@drawable/ic_baseline_power_settings_new_24"/>
 
     <FrameLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-</LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

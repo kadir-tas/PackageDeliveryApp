@@ -97,7 +97,7 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:layout_marginTop="10dp"
-            android:text="Sepete Ekle"
+            android:text="Add Cart"
             android:textColor="@drawable/button_text_color_second"
             android:layout_weight="0.4"
             android:textAllCaps="false"
