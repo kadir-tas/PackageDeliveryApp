@@ -84,34 +84,33 @@ public class ProductFragment extends Fragment implements ProductRecyclerViewAdap
                 recyclerView.setLayoutManager(gridLayoutManager);
             }
 
-            Log.d("FFF", "EMEK INITTED");
             switch(mProductCatagory) {
-                case "Ekmek Çeşitleri":
-                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.EKMEK_CESITLERI, mListener, this);
+                case "Bread Types":
+                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.BREAD_TYPES, mListener, this);
                     break;
-                case "240 Derece Atölye":
-                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.ATOLYE, mListener, this);
+                case "Workshop":
+                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.WORKSHOP, mListener, this);
                     break;
-                case "Pastane":
-                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.PASTANE, mListener, this);
+                case "Patisserie":
+                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.PATISSERIE, mListener, this);
                     break;
-                case "Meyve & Sebze":
-                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.EKMEK_CESITLERI, mListener, this);
+/*                case "Fruits & Vegetables":
+                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.BREAD_TYPES, mListener, this);
                     break;
-                case "Unlu Mamüller":
-                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.ATOLYE, mListener, this);
+                case "Bakery Products":
+                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.WORKSHOP, mListener, this);
                     break;
-                case "Atıştırmalık":
-                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.PASTANE, mListener, this);
+                case "Snack":
+                    productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.PATISSERIE, mListener, this);
                     break;
-                case "Dondurma":
+                case "Ice Cream":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.DONDURMA, mListener, this);
                     break;
-                case "Yiyecek":
+                case "Food":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.YIYECEK, mListener, this);
                     Log.d("MMM" , "HEREE");
                     break;
-                case "İçeçek":
+                case "Drink":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.ICECEK, mListener, this);
 
                     break;
@@ -119,46 +118,46 @@ public class ProductFragment extends Fragment implements ProductRecyclerViewAdap
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.FIT_FORM, mListener, this);
 
                     break;
-                case "Süt & Kahvaltı":
+                case "Milk & Breakfast":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.SUT_KAHVALTI, mListener, this);
 
                     break;
-                case "Temel Gıda":
+                case "Basic Food":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.TEMEL_GIDA, mListener, this);
 
                     break;
-                case "Kişisel Bakım":
+                case "Personal Care":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.KISISEL_BAKIM, mListener, this);
 
                     break;
-                case "Ev & Temizlik":
+                case "Home & Cleaning":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.EV_TEMIZLIK, mListener, this);
 
                     break;
-                case "Ev & Yaşam":
+                case "Home & Life":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.EV_YASAM, mListener, this);
 
                     break;
-                case "Teknoloji":
+                case "Technology":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.TEKNOLOJI, mListener, this);
 
                     break;
-                case "Evcil Hayvan":
+                case "Pet":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.EVCIL_HAYVAN, mListener, this);
 
                     break;
-                case "Bebek":
+                case "Baby":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.BEBEK, mListener, this);
 
                     break;
-                case "Cinsel Sağlık":
+                case "Sexual Health":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.CINSEL_SAGLIK, mListener, this);
 
                     break;
-                case "Giyim":
+                case "Clothing":
                     productRecyclerViewAdapter = new ProductRecyclerViewAdapter(DummyContent.GIYIM, mListener, this);
                     break;
-
+*/
             }
             ((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
             recyclerView.setAdapter(productRecyclerViewAdapter);

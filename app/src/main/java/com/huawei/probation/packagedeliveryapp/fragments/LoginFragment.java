@@ -23,11 +23,10 @@ public class LoginFragment extends Fragment {
     private EditText mPasswordEditText;
     private Button mLoginButton;
     private Button mRegisterButton;
+    private Button mAnonymousLoginButton;
     private ImageView mHuaweiLogo;
 
-    private OnLoginListener mOnLoginListener;
-    private OnRegisterListener mOnRegisterListener;
-    private HuaweiLogoClickListener mHuaweiLogoClickListener;
+    private LoginFragmentButtonListeners mLoginFragmentButtonListeners;
 
     private String mEmail;
     private String mPassword;
@@ -64,17 +63,20 @@ public class LoginFragment extends Fragment {
         mLoginButton.setOnClickListener(v1 -> {
             getEditTextValues();
             if(validateForm()) {
-                mOnLoginListener.onLoginButtonClick(mEmail,mPassword);
+                mLoginFragmentButtonListeners.onLoginButtonClick(mEmail,mPassword);
             }else{
                 Toast.makeText(getContext(), "Please fill each field!", Toast.LENGTH_LONG).show();
             }
         });
 
         mRegisterButton = v.findViewById(R.id.register);
-        mRegisterButton.setOnClickListener(view -> mOnRegisterListener.onRegisterButtonClicked());
+        mRegisterButton.setOnClickListener(view -> mLoginFragmentButtonListeners.onRegisterButtonClicked());
 
         mHuaweiLogo = v.findViewById(R.id.loginHuaweiId);
-        mHuaweiLogo.setOnClickListener(view-> mHuaweiLogoClickListener.onHuaweiLogoClick());
+        mHuaweiLogo.setOnClickListener(view-> mLoginFragmentButtonListeners.onHuaweiLogoClick());
+
+        mAnonymousLoginButton = v.findViewById(R.id.loginAnonymous);
+        mAnonymousLoginButton.setOnClickListener(view-> mLoginFragmentButtonListeners.onAnonymousLoginButtonClick());
 
         return v;
     }
@@ -82,14 +84,8 @@ public class LoginFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if(context instanceof HuaweiLogoClickListener){
-            mHuaweiLogoClickListener = (HuaweiLogoClickListener) context;
-        }
-        if(context instanceof OnRegisterListener){
-            mOnRegisterListener = (OnRegisterListener) context;
-        }
-        if (context instanceof OnLoginListener) {
-            mOnLoginListener = (OnLoginListener) context;
+        if (context instanceof LoginFragmentButtonListeners) {
+            mLoginFragmentButtonListeners = (LoginFragmentButtonListeners) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -99,9 +95,7 @@ public class LoginFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mOnLoginListener = null;
-        mOnRegisterListener = null;
-        mHuaweiLogoClickListener = null;
+        mLoginFragmentButtonListeners = null;
     }
 
     private void getEditTextValues() {
@@ -116,17 +110,12 @@ public class LoginFragment extends Fragment {
     }
 
     //TODO: NOT COMPLETE YET
-    public interface OnLoginListener{
+    public interface LoginFragmentButtonListeners {
         void onLoginButtonClick(String username, String password);
         void onLoginCorrect();
         void onLoginWrong();
-    }
-
-    public interface OnRegisterListener{
         void onRegisterButtonClicked();
-    }
-
-    public interface HuaweiLogoClickListener{
         void onHuaweiLogoClick();
+        void onAnonymousLoginButtonClick();
     }
 }

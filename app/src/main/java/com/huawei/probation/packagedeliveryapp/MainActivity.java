@@ -9,28 +9,20 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.huawei.agconnect.auth.AGConnectAuth;
 import com.huawei.agconnect.auth.AGConnectAuthCredential;
 import com.huawei.agconnect.auth.AGConnectUser;
 import com.huawei.agconnect.auth.EmailAuthProvider;
 import com.huawei.agconnect.auth.HwIdAuthProvider;
-import com.huawei.agconnect.auth.SignInResult;
-import com.huawei.agconnect.core.service.auth.OnTokenListener;
 import com.huawei.agconnect.core.service.auth.TokenSnapshot;
-import com.huawei.hmf.tasks.OnFailureListener;
-import com.huawei.hmf.tasks.OnSuccessListener;
 import com.huawei.hmf.tasks.Task;
 import com.huawei.hms.common.ApiException;
-import com.huawei.hms.support.api.entity.auth.Scope;
-import com.huawei.hms.support.api.entity.hwid.HwIDConstant;
 import com.huawei.hms.support.hwid.HuaweiIdAuthManager;
 import com.huawei.hms.support.hwid.request.HuaweiIdAuthParams;
 import com.huawei.hms.support.hwid.request.HuaweiIdAuthParamsHelper;
@@ -51,18 +43,18 @@ import com.huawei.probation.packagedeliveryapp.ınterfaces.OnCartChangedListener
 
 import org.json.JSONException;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import static com.huawei.probation.packagedeliveryapp.adapters.CategoriesRecyclerViewAdapter.recViewItemPressed;
+import static com.huawei.probation.packagedeliveryapp.map.MapsActivity.isDrone;
+import static com.huawei.probation.packagedeliveryapp.map.MapsActivity.isTrackOrder;
 
 public class MainActivity extends AppCompatActivity
         implements CategoriesFragment.OnFragmentInteractionListener,
         ShopFragment.OnFragmentInteractionListener, ProductFragment.OnListFragmentInteractionListener,
         OnCartChangedListener, CartFragment.OnFragmentInteractionListener, CartFragment.OnItemsPurchased,
         ItemDetailFragment.OnItemDetailInteraction,
-        LoginFragment.OnLoginListener, LoginFragment.OnRegisterListener, LoginFragment.HuaweiLogoClickListener {
+        LoginFragment.LoginFragmentButtonListeners {
 
     private static final String TAG = "MainActivity";
 
@@ -76,6 +68,7 @@ public class MainActivity extends AppCompatActivity
 
     private AGConnectAuth auth;
     private HuaweiIdAuthService service;
+    private BottomAppBar bottomAppBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,28 +87,32 @@ public class MainActivity extends AppCompatActivity
         totalPrice.setVisibility(View.INVISIBLE);
         cartButton.setVisibility(View.INVISIBLE);
 
+        bottomAppBar = findViewById(R.id.bottom_app_bar);
+        bottomAppBar.setVisibility(View.INVISIBLE);
+
+        packgeDeliveryIcon.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, MapsActivity.class));
+        });
+
         auth = AGConnectAuth.getInstance();
 
         AGConnectAuth.getInstance().addTokenListener(tokenSnapshot -> {
             TokenSnapshot.State state = tokenSnapshot.getState();
             if (state == TokenSnapshot.State.TOKEN_INVALID) {
-                String token = tokenSnapshot.getToken();
+                transmitTokenIntoAppGalleryConnect(tokenSnapshot.getToken());
             }
         });
+
+        BottomAppBar bottomAppBar = findViewById(R.id.bottom_app_bar);
+
+        bottomAppBar.setNavigationOnClickListener(v -> signOutClicked());
 
         if (auth.getCurrentUser() != null) {
             onLoginCorrect();
         } else {
             getSupportFragmentManager().beginTransaction().add(R.id.container,
                     LoginFragment.newInstance(), "LOGIN_FRAGMENT").commit();
-
-            AGConnectAuth.getInstance().signInAnonymously()
-                    .addOnSuccessListener(signInResult -> {
-                        AGConnectUser user = signInResult.getUser();
-                        Toast.makeText(MainActivity.this, user.getUid(), Toast.LENGTH_LONG).show();
-                    }).addOnFailureListener(e -> Toast.makeText(MainActivity.this, "Anonymous SignIn Failed", Toast.LENGTH_LONG).show());
         }
-
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -146,7 +143,7 @@ public class MainActivity extends AppCompatActivity
     private void transmitTokenIntoAppGalleryConnect(String accessToken) {
         AGConnectAuthCredential credential = HwIdAuthProvider.credentialWithToken(accessToken);
         Toast.makeText(MainActivity.this, accessToken, Toast.LENGTH_SHORT).show();
-        AGConnectAuth.getInstance().getCurrentUser().link(credential)/*signIn(credential)*/.addOnSuccessListener(signInResult -> {
+        AGConnectAuth.getInstance()/*.getCurrentUser()link(credential)*/.signIn(credential).addOnSuccessListener(signInResult -> {
             // onSuccess
             Toast.makeText(MainActivity.this, "onSuccess", Toast.LENGTH_SHORT).show();
             AGConnectUser user = signInResult.getUser();
@@ -167,17 +164,26 @@ public class MainActivity extends AppCompatActivity
         Fragment itemDetailFragment = getSupportFragmentManager().findFragmentByTag("PROD_DETAIL_FRAG");
 
         if (itemDetailFragment != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().remove(itemDetailFragment).commit();
         } else if (loginFrag != null) {
             finish();
         } else if (cartFragment != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().remove(cartFragment).commit();
             getSupportFragmentManager().beginTransaction().show(shopFragment).commit();
         } else if (sop != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().remove(sop).commit();
             getSupportFragmentManager().beginTransaction().show(cat).commit();
             recViewItemPressed = false;
         } else if (cat != null) {
+            // clear for anonymous account when user want to exit from the app
+            if (AGConnectAuth.getInstance().getCurrentUser().isAnonymous()) {
+                AGConnectAuth.getInstance().deleteUser();
+            }
+            isTrackOrder = false;
+            isDrone = false;
             finish();
         }
     }
@@ -194,6 +200,7 @@ public class MainActivity extends AppCompatActivity
 
 
     public void switchContent(String categoryName) {
+        bottomAppBar.setVisibility(View.INVISIBLE);
         Fragment cat = getSupportFragmentManager().findFragmentByTag("CAT_FRAG");
         ShopFragment sf = ShopFragment.newInstance(categoryName, shoppingCart);
         getSupportFragmentManager().beginTransaction().hide(cat).commit();
@@ -215,27 +222,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onItemsPurchased() {
-        /*Toast toast = Toast.makeText(this, "Thanks for your purhcase", Toast.LENGTH_LONG);
-        toast.show();
-        shoppingCart.clear();
-        CartFragment cartFragment = (CartFragment) getSupportFragmentManager().findFragmentByTag("CART_FRAGMENT");
-        getSupportFragmentManager().beginTransaction().remove(cartFragment).commit();
-        getSupportFragmentManager().beginTransaction().show(shopFragment).commit();
-        */
         orderCountIcon.setVisibility(View.VISIBLE);
         Intent intent = new Intent(MainActivity.this, MapsActivity.class);
         startActivity(intent);
     }
 
     void signOutClicked() {
-//        findViewById(R.id.btn_logout).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                AGConnectAuth.getInstance().signOut();
-//                startActivity(new Intent(HomePageActivity.this, MainActivity.class));
-//                finish();
-//            }
-//        });
+        AGConnectAuth.getInstance().signOut();
+        startActivity(new Intent(MainActivity.this, MainActivity.class));
+        finish();
     }
 
     @Override
@@ -243,6 +238,7 @@ public class MainActivity extends AppCompatActivity
         totalPrice.setVisibility(View.VISIBLE);
         cartButton.setVisibility(View.VISIBLE);
         packgeDeliveryIcon.setVisibility(View.VISIBLE);
+        bottomAppBar.setVisibility(View.VISIBLE);
 
         shoppingCart = new Cart();
         shoppingCart.addOnCartChangedListener(this);
@@ -253,9 +249,11 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 CartFragment cartFragment = (CartFragment) getSupportFragmentManager().findFragmentByTag("CART_FRAGMENT");
                 if (cartFragment == null) {
+                    bottomAppBar.setVisibility(View.INVISIBLE);
                     getSupportFragmentManager().beginTransaction().hide(shopFragment).commit();
                     getSupportFragmentManager().beginTransaction().add(R.id.container, CartFragment.newInstance(shoppingCart, MainActivity.this), "CART_FRAGMENT").commit();
                 } else {
+                    bottomAppBar.setVisibility(View.INVISIBLE);
                     getSupportFragmentManager().beginTransaction().remove(cartFragment).commit();
                     getSupportFragmentManager().beginTransaction().show(shopFragment).commit();
                 }
@@ -263,8 +261,9 @@ public class MainActivity extends AppCompatActivity
         });
 
         LoginFragment loginFragment = (LoginFragment) getSupportFragmentManager().findFragmentByTag("LOGIN_FRAGMENT");
-        getSupportFragmentManager().beginTransaction().remove(loginFragment).commit();
-
+        if (loginFragment != null) {
+            getSupportFragmentManager().beginTransaction().remove(loginFragment).commit();
+        }
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.container, new CategoriesFragment(), "CAT_FRAG");
         ft.addToBackStack(null);
@@ -316,20 +315,23 @@ public class MainActivity extends AppCompatActivity
         getSupportFragmentManager().beginTransaction().remove(itemDetailFragment).commit();
     }
 
+    //Login with email and password (First user need to complete registration process)
     @Override
     public void onLoginButtonClick(String email, String password) {
-        AGConnectAuthCredential credential = EmailAuthProvider.credentialWithPassword(email,password);
+        AGConnectAuthCredential credential = EmailAuthProvider.credentialWithPassword(email, password);
         AGConnectAuth.getInstance().signIn(credential)
                 .addOnSuccessListener(signInResult -> onLoginCorrect())
                 .addOnFailureListener(e -> Toast.makeText(MainActivity.this, "Bad credentials", Toast.LENGTH_LONG).show());
     }
 
+    //Register
     @Override
     public void onRegisterButtonClicked() {
         startActivity(new Intent(MainActivity.this, RegisterActivity.class));
         finish();
     }
 
+    //Login with Huawei ID
     @Override
     public void onHuaweiLogoClick() {
 //        HuaweiIdAuthParams authParams= new HuaweiIdAuthParamsHelper(HuaweiIdAuthParams.DEFAULT_AUTH_REQUEST_PARAM).setAccessToken().createParams();
@@ -344,6 +346,16 @@ public class MainActivity extends AppCompatActivity
         HuaweiIdAuthParams authParams = huaweiIdAuthParamsHelper.setAccessToken().createParams();
         service = HuaweiIdAuthManager.getService(MainActivity.this, authParams);
         startActivityForResult(service.getSignInIntent(), AppConstants.REQUEST_SIGN_IN_LOGIN_CODE);
+    }
 
+    //Login as anonymous user
+    @Override
+    public void onAnonymousLoginButtonClick() {
+        AGConnectAuth.getInstance().signInAnonymously()
+                .addOnSuccessListener(signInResult -> {
+                    AGConnectUser user = signInResult.getUser();
+                    Toast.makeText(MainActivity.this, user.getUid(), Toast.LENGTH_LONG).show();
+                    onLoginCorrect();
+                }).addOnFailureListener(e -> Toast.makeText(MainActivity.this, "Anonymous SignIn Failed " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 }

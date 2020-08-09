@@ -44,7 +44,7 @@
             android:textSize="17dp"
             android:layout_marginRight="30dp"
             android:layout_weight="0.4"
-            android:text="Tamamla"></Button>
+            android:text="Buy"/>
 
     </LinearLayout>
 

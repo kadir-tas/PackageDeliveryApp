@@ -58,6 +58,19 @@
             android:textColor="@color/darkgreen"
             android:textSize="16dp" />
 
+        <Button
+            android:id="@+id/loginAnonymous"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginLeft="100dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="100dp"
+            android:background="@drawable/rounded_bg_edge_green"
+            android:text="Anonymous Login"
+            android:textColor="@color/darkgreen"
+            android:textSize="16dp" />
+
     </LinearLayout>
 
     <ImageView
