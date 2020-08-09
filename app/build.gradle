@@ -12,6 +12,13 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Read the API key from ./secure.properties into R.string.maps_api_key
+        def secureProps = new Properties()
+        if (file("../../../../secure.properties").exists()) {
+            file("../../../../secure.properties")?.withInputStream { secureProps.load(it) }
+        }
+        resValue "string", "maps_api_key", (secureProps.getProperty("MAPS_API_KEY") ?: "")
     }
 
     signingConfigs {
@@ -59,6 +66,8 @@ dependencies {
     implementation 'com.makeramen:roundedimageview:2.3.0'
     implementation 'de.hdodenhof:circleimageview:2.1.0'
 
+    //HMS Dependencies
+
     //MapKit dependency
     implementation 'com.huawei.hms:maps:4.0.1.301'
     implementation 'com.huawei.hms:location:4.0.4.300'
@@ -81,5 +90,12 @@ dependencies {
 
     //okhttp3
     implementation 'com.squareup.okhttp3:logging-interceptor:4.7.2'
+
+    //GMS Dependencies
+
+    //Google Maps & Location
+    implementation 'com.google.maps.android:android-maps-utils:0.5'
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
 
 }
