@@ -19,26 +19,24 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-        <!--
-             The API key for Google Maps-based APIs.
-        -->
+        <!--              The API key for Google Maps-based APIs. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/maps_api_key" />
 
-        <activity android:name=".activities.RegisterActivity"/>
+        <activity android:name=".activities.RegisterActivity" />
 
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".ads.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".MainActivity"/>
         <activity
             android:name=".map.MapsActivity"
             android:label="@string/title_activity_maps" />

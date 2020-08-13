@@ -4,12 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context=".map.MapsActivity">
-
-    <com.huawei.probation.packagedeliveryapp.customview.mapview.HuaweiGoogleMapView
-        android:id="@+id/huaweigoogle_map_view"
+    tools:context=".ads.SplashActivity">
+    <!--Splash View that is defined at here is provided by HMS-->
+    <com.huawei.hms.ads.splash.SplashView
+        android:id="@+id/splash_ad_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -84,6 +84,13 @@ dependencies {
 
     //Game service
     implementation 'com.huawei.hms:game:4.0.0.300'
+
+    //Ads Kit
+    implementation 'com.huawei.hms:ads-lite:13.4.30.301'
+
+    //Analytics Kit
+    implementation 'com.huawei.hms:hianalytics:5.0.1.301'
+
     //retrofit
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.squareup.retrofit2:retrofit:2.7.2'

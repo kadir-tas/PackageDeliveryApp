@@ -1,18 +1,24 @@
 package com.huawei.probation.packagedeliveryapp;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
-
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.huawei.agconnect.auth.AGConnectAuth;
@@ -22,6 +28,16 @@ import com.huawei.agconnect.auth.EmailAuthProvider;
 import com.huawei.agconnect.auth.HwIdAuthProvider;
 import com.huawei.agconnect.core.service.auth.TokenSnapshot;
 import com.huawei.hmf.tasks.Task;
+import com.huawei.hms.ads.AdParam;
+import com.huawei.hms.ads.BannerAdSize;
+import com.huawei.hms.ads.HwAds;
+import com.huawei.hms.ads.banner.BannerView;
+import com.huawei.hms.ads.reward.Reward;
+import com.huawei.hms.ads.reward.RewardAd;
+import com.huawei.hms.ads.reward.RewardAdLoadListener;
+import com.huawei.hms.ads.reward.RewardAdStatusListener;
+import com.huawei.hms.analytics.HiAnalytics;
+import com.huawei.hms.analytics.HiAnalyticsInstance;
 import com.huawei.hms.common.ApiException;
 import com.huawei.hms.support.hwid.HuaweiIdAuthManager;
 import com.huawei.hms.support.hwid.request.HuaweiIdAuthParams;
@@ -39,12 +55,17 @@ import com.huawei.probation.packagedeliveryapp.fragments.ProductFragment;
 import com.huawei.probation.packagedeliveryapp.fragments.ShopFragment;
 import com.huawei.probation.packagedeliveryapp.map.MapsActivity;
 import com.huawei.probation.packagedeliveryapp.util.AppConstants;
+import com.huawei.probation.packagedeliveryapp.util.Permissions;
 import com.huawei.probation.packagedeliveryapp.ınterfaces.OnCartChangedListener;
 
 import org.json.JSONException;
 
 import java.util.HashMap;
 
+import static com.huawei.hms.analytics.type.HAEventType.VIEWPRODUCT;
+import static com.huawei.hms.analytics.type.HAParamType.CATEGORY;
+import static com.huawei.hms.analytics.type.HAParamType.PRODUCTID;
+import static com.huawei.hms.analytics.type.HAParamType.PRODUCTNAME;
 import static com.huawei.probation.packagedeliveryapp.adapters.CategoriesRecyclerViewAdapter.recViewItemPressed;
 import static com.huawei.probation.packagedeliveryapp.map.MapsActivity.isDrone;
 import static com.huawei.probation.packagedeliveryapp.map.MapsActivity.isTrackOrder;
@@ -57,6 +78,12 @@ public class MainActivity extends AppCompatActivity
         LoginFragment.LoginFragmentButtonListeners {
 
     private static final String TAG = "MainActivity";
+    private static String adID ="testw6vs28auh3";
+    private static String reward_ad_id ="testx9dtjwj8hp";
+
+    private RewardAd rewardAd;
+
+    private ConstraintLayout constLytBanner;
 
     private TextView totalPrice;
     private ImageButton cartButton;
@@ -69,6 +96,7 @@ public class MainActivity extends AppCompatActivity
     private AGConnectAuth auth;
     private HuaweiIdAuthService service;
     private BottomAppBar bottomAppBar;
+    private HiAnalyticsInstance analyticsInstance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +104,13 @@ public class MainActivity extends AppCompatActivity
         shoppingCart = new Cart();
         setContentView(R.layout.activity_main);
 
+        // Generate the Analytics Instance
+        analyticsInstance = HiAnalytics.getInstance(this);
+        createPresetEvent();
+
+        HwAds.init(this);
+
+        constLytBanner = findViewById(R.id.consLytBanner);
         totalPrice = findViewById(R.id.cart_price);
         cartButton = findViewById(R.id.cart_button);
         packgeDeliveryIcon = findViewById(R.id.track_order_button);
@@ -90,8 +125,14 @@ public class MainActivity extends AppCompatActivity
         bottomAppBar = findViewById(R.id.bottom_app_bar);
         bottomAppBar.setVisibility(View.INVISIBLE);
 
+        setBannerAd();
+
+        loadRewardAd();
+
         packgeDeliveryIcon.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, MapsActivity.class));
+            if(Permissions.getLocationPermission(this)){
+                startActivity(new Intent(MainActivity.this, MapsActivity.class));
+            }
         });
 
         auth = AGConnectAuth.getInstance();
@@ -140,6 +181,21 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (Permissions.LOCATION_PERMISSION_KEY == requestCode) {
+            if ((grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                startActivity(new Intent(MainActivity.this, MapsActivity.class));
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("İzinler").setMessage("Konum izni vermeden map sayfasını açamazsınız. Lütfen uygulamaya konum izni veriniz.")
+                        .setPositiveButton("Tamam", (dialogInterface, i) -> dialogInterface.dismiss());
+                builder.show();
+            }
+        }
+    }
+
     private void transmitTokenIntoAppGalleryConnect(String accessToken) {
         AGConnectAuthCredential credential = HwIdAuthProvider.credentialWithToken(accessToken);
         Toast.makeText(MainActivity.this, accessToken, Toast.LENGTH_SHORT).show();
@@ -152,6 +208,133 @@ public class MainActivity extends AppCompatActivity
             // onFail
             Toast.makeText(MainActivity.this, "onFailure" + e.getMessage(), Toast.LENGTH_LONG).show();
         });
+    }
+
+    private void createPresetEvent() {
+        Bundle bundle = new Bundle();
+        bundle.putLong(PRODUCTID, 1234);
+        bundle.putString(PRODUCTNAME, getDeviceName());
+        bundle.putString(CATEGORY, "Phone");
+        // Report a predefined Event
+        analyticsInstance.onEvent(VIEWPRODUCT, bundle);
+    }
+
+    private void createCustomEvent() {
+        Bundle bundle = new Bundle();
+        bundle.putString("customParam1", "value1");
+        bundle.putString("customParam2", "value2");
+        bundle.putString("customParam3", "value3");
+        // Report a predefined event.
+        //Tanımlanan custom event ismi Preset isimlendirmelerinden farklı olmalı.
+        analyticsInstance.onEvent("customEventV1", bundle);
+    }
+
+
+    /** Returns the consumer friendly device name */
+    public static String getDeviceName() {
+        String manufacturer = Build.MANUFACTURER;
+        String model = Build.MODEL;
+        if (model.startsWith(manufacturer)) {
+            return capitalize(model);
+        }
+        return capitalize(manufacturer) + " " + model;
+    }
+
+    private static String capitalize(String str) {
+        if (TextUtils.isEmpty(str)) {
+            return str;
+        }
+        char[] arr = str.toCharArray();
+        boolean capitalizeNext = true;
+
+        StringBuilder phrase = new StringBuilder();
+        for (char c : arr) {
+            if (capitalizeNext && Character.isLetter(c)) {
+                phrase.append(Character.toUpperCase(c));
+                capitalizeNext = false;
+                continue;
+            } else if (Character.isWhitespace(c)) {
+                capitalizeNext = true;
+            }
+            phrase.append(c);
+        }
+
+        return phrase.toString();
+    }
+
+
+    private void setBannerAd(){
+        BannerView bottomBanner = new BannerView(this);
+        AdParam adParam = new AdParam.Builder().build();
+        bottomBanner.setAdId(adID);
+        bottomBanner.setBannerAdSize(BannerAdSize.BANNER_SIZE_360_57);
+        bottomBanner.loadAd(adParam);
+        constLytBanner.addView(bottomBanner);
+    }
+
+    private void loadRewardAd(){
+        if(rewardAd == null){
+            rewardAd = new RewardAd(MainActivity.this,reward_ad_id);//set ad slot id
+        }
+
+        RewardAdLoadListener rewardAdLoadListener = new RewardAdLoadListener(){
+            @Override
+            public void onRewardAdFailedToLoad(int errorCode) {
+                //i returns error code
+                Log.e("ERROR",""+errorCode);
+            }
+
+            @Override
+            public void onRewardedLoaded() {
+                Log.i("INFO","Your reward was added successfully");
+            }
+        };
+
+        rewardAd.loadAd(new AdParam.Builder().build(),rewardAdLoadListener);
+    }
+
+    private void rewardAdShow(){
+        if(rewardAd.isLoaded()){
+            rewardAd.show(MainActivity.this, new RewardAdStatusListener() {
+
+                @Override
+                public void onRewardAdClosed() {
+                    loadRewardAd();
+                }
+
+                @Override
+                public void onRewardAdFailedToShow(int i) {
+                    Log.e("ERROR",String.valueOf(i));
+                }
+
+                @Override
+                public void onRewardAdOpened() {
+                    Toast.makeText(MainActivity.this,"Item Purchased",Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onRewarded(Reward reward) {
+                    //If you want to give reward to player , you can declare reward
+                    reward = new Reward() {
+                        @Override
+                        public String getName() {
+                            return "Tracking order chance";//My reword name
+                        }
+
+                        @Override
+                        public int getAmount() { //specify reward amount
+                            return 1;
+                        }
+                    };
+
+                    Toast.makeText(getApplicationContext(),reward.getName()+"+"+reward.getAmount(),Toast.LENGTH_SHORT).show();
+
+                    loadRewardAd();
+                    Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                    startActivity(intent);
+                }
+            });
+        }
     }
 
     @Override
@@ -223,8 +406,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onItemsPurchased() {
         orderCountIcon.setVisibility(View.VISIBLE);
-        Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-        startActivity(intent);
+        rewardAdShow();//triggered reward listeners
+//        Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+//        startActivity(intent);
     }
 
     void signOutClicked() {
@@ -303,6 +487,8 @@ public class MainActivity extends AppCompatActivity
         shoppingCart.putItem(itemDetailFragment.getProduct().first, itemDetailFragment.getProduct().second);
         Toast.makeText(this, "Added to cart", Toast.LENGTH_LONG).show();
 
+        //Test for analytics kit to create a custom event
+        createCustomEvent();
 
         getSupportFragmentManager().beginTransaction().remove(itemDetailFragment).commit();
     }
